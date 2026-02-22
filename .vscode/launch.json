@@ -1,0 +1,49 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/Debug/stm32f407_ethernet.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "interface": "swd",
+            "device": "STM32F407VG",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "raw",
+            "svdFile": "${workspaceRoot}/.vscode/STM32F407.svd",
+            "configFiles": [
+                "interface/stlink-v2-1.cfg",
+                "target/stm32f4x.cfg"
+            ],
+            // "preLaunchTask": "${defaultBuildTask}",
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            }
+            // "swoConfig": {"swoFrequency": 1800000}
+        },
+        {
+            "name": "Run",
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/Debug/stm32f407_ethernet.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "interface": "swd",
+            "device": "STM32F407VG",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "raw",
+            "svdFile": "${workspaceRoot}/.vscode/STM32F407.svd",
+            "configFiles": [
+                "interface/stlink-v2-1.cfg",
+                "target/stm32f4x.cfg"
+            ],
+            "postLaunchCommands": [
+                "monitor reset run",
+                "detach"
+            ]
+        }
+    ]
+}
