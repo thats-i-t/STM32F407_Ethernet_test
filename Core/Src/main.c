@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lwip.h"
 #include "lwip/udp.h"
 #include "lwip/pbuf.h"
 #include "lwip/ip_addr.h"
@@ -63,16 +64,45 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern USBD_HandleTypeDef hUsbDeviceFS;
-#include "usbd_cdc_if.h"
 
 // see https://shawnhymel.com/1873/how-to-use-printf-on-stm32/
 #include <reent.h>
+
 _ssize_t _write_r(struct _reent* r, int fd, const void * ptr, size_t len)
 {
   (void)r;
   (void)fd;
   while (USBD_OK != CDC_Transmit_FS((uint8_t*)ptr, len));
+  return len;
+}
+
+uint8_t UsbAppBuf[100];
+uint16_t UsbAppBufPt = 0;
+uint16_t UsbAppBufReadPt = 0;
+_ssize_t _read_r(struct _reent* r, int fd, void * ptr, size_t len)
+{
+  (void)r;
+  if (fd != 0) return -1; // nur stdin
+
+  uint8_t len_received = 0;
+  uint8_t * ptr_ui8 = (uint8_t*)ptr;
+  while(len_received < len)
+  {
+    if(UsbAppBufReadPt != UsbAppBufPt)
+    {
+      if((UsbAppBuf[UsbAppBufReadPt] == '\r') || (UsbAppBuf[UsbAppBufReadPt] == '\n'))
+      {
+        *ptr_ui8 = '\0';
+        return len_received;
+      }
+      *ptr_ui8 = UsbAppBuf[UsbAppBufReadPt];
+      ptr_ui8++;
+      UsbAppBufReadPt++;
+      len_received++;
+      
+      // while (USBD_OK != CDC_Transmit_FS(&UsbAppBuf[UsbAppBufReadPt-1], 1));
+    }
+  }
   return len;
 }
 
@@ -110,11 +140,22 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(500);
-  setvbuf(stdout, NULL, _IONBF, 0); // see https://shawnhymel.com/1873/how-to-use-printf-on-stm32/
-  unsigned char d[] = "Test RAW write auf USB Schnittstelle\n";
-  CDC_Transmit_FS(d, sizeof(d));
-  printf("Test von print() auf USB-Schnittstelle: %f\n", 1.23f);
-  HAL_Delay(5000);
+  setvbuf(stdout, NULL, _IONBF, 0); // buffering off, see https://shawnhymel.com/1873/how-to-use-printf-on-stm32/
+
+  // unsigned char d[] = "Test RAW write auf USB Schnittstelle\n";
+  // CDC_Transmit_FS(d, sizeof(d));  
+
+  HAL_Delay(2000);
+  printf("Paused. Press enter to continue...\n");
+  float dummy;
+  scanf("%f", &dummy);
+
+  // printf("Test von print() auf USB-Schnittstelle: %f\n", 1.23f);
+  // float num;
+  // printf("Zahl eingeben und Enter druecken: ");
+  // scanf("%f", &num);
+  // printf("\nZahl die eingegeben wurde: %f\n", num);
+  // HAL_Delay(5000);
   
   MX_LWIP_Init();
   /* USER CODE END 2 */
