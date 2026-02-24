@@ -19,10 +19,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "lwip.h"
+#include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lwip/udp.h"
+#include "lwip/pbuf.h"
+#include "lwip/ip_addr.h"
+#include "string.h"
+#include "usbd_cdc_if.h"
 
 /* USER CODE END Includes */
 
@@ -44,6 +50,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+struct udp_pcb *upcb;
+struct pbuf *p;
+ip_addr_t dest_ip;
 
 /* USER CODE END PV */
 
@@ -55,6 +64,17 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern USBD_HandleTypeDef hUsbDeviceFS;
+#include "usbd_cdc_if.h"
+
+#include <reent.h>
+_ssize_t _write_r(struct _reent* r, int fd, const void * ptr, size_t len)
+{
+  (void)r;
+  (void)fd;
+  while (USBD_OK != CDC_Transmit_FS((uint8_t*)ptr, len));
+  return len;
+}
 
 /* USER CODE END 0 */
 
@@ -88,8 +108,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_LWIP_Init();
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_Delay(500);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  unsigned char d[] = "Test RAW write auf USB Schnittstelle\n";
+  CDC_Transmit_FS(d, sizeof(d));
+  printf("Test von print() auf USB-Schnittstelle: %f\n", 1.23f);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,7 +124,39 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    printf(".");
+    HAL_Delay(100);
+    MX_LWIP_Process();
+        
+    /* UDP Control Block erzeugen */
+    upcb = udp_new();
+    if (upcb == NULL) {
+        // Fehlerbehandlung
+        continue;
+    }
+
+    /* Ziel-IP setzen */
+    IP4_ADDR(&dest_ip, 192,168,123,2);
+
+    /* Daten */
+    char data[] = "Hallo vom STM32F407";
+
+    /* pbuf anlegen */
+    p = pbuf_alloc(PBUF_TRANSPORT, sizeof(data), PBUF_RAM);
+    if (p != NULL) {
+        memcpy(p->payload, data, sizeof(data));
+
+        /* Senden */
+        udp_sendto(upcb, p, &dest_ip, 5005);
+
+        /* pbuf freigeben */
+        pbuf_free(p);
+      }
+
+      /* UDP PCB freigeben (optional, wenn nur einmal gesendet wird) */
+      udp_remove(upcb);
   }
+
   /* USER CODE END 3 */
 }
 

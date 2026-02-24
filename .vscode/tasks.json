@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "cmake",
+      "label": "CMake_flash",
+      "command": "build",
+      "targets": [
+        "Flash_via_OpenOCD"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [],
+      "detail": "Run custom CMake flash target"
+    }
+  ]
+}

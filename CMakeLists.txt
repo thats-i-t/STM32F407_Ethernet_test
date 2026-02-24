@@ -66,3 +66,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
     # Add user defined libraries
 )
+
+# Command to flash hex via open ocd
+add_custom_target(Flash_via_OpenOCD
+    COMMAND openocd -f "interface/stlink.cfg" -f "target/stm32f4x.cfg" -c "init" -c "reset init" -c "program ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.elf verify reset exit"
+    COMMENT "Flashing elf via open ocd"
+)
+add_dependencies(Flash_via_OpenOCD ${CMAKE_PROJECT_NAME})

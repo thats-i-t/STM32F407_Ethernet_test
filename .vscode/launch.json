@@ -2,31 +2,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
-            "cwd": "${workspaceRoot}",
+            "name": "Debug w/o halt",
+            "cwd": "${workspaceFolder}",
             "executable": "./build/Debug/stm32f407_ethernet.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
             "interface": "swd",
             "device": "STM32F407VG",
-            "runToEntryPoint": "main",
+            "runToEntryPoint": null,
             "showDevDebugOutput": "raw",
             "svdFile": "${workspaceRoot}/.vscode/STM32F407.svd",
             "configFiles": [
-                "interface/stlink-v2-1.cfg",
+                "interface/stlink.cfg",
                 "target/stm32f4x.cfg"
             ],
-            // "preLaunchTask": "${defaultBuildTask}",
             "liveWatch": {
                 "enabled": true,
-                "samplesPerSecond": 4
-            }
-            // "swoConfig": {"swoFrequency": 1800000}
+                "samplesPerSecond": 1
+            },
+            "openOCDLaunchCommands": ["transport select hla_swd"],
+            // "preLaunchTask": "${defaultBuildTask}",
+            // "preLaunchTask": "flash-firmware",
+            "preLaunchTask": "CMake_flash",
+            // "postAttachCommands": ["continue"]
         },
         {
-            "name": "Run",
-            "cwd": "${workspaceRoot}",
+            "name": "Debug",
+            "cwd": "${workspaceFolder}",
             "executable": "./build/Debug/stm32f407_ethernet.elf",
             "request": "launch",
             "type": "cortex-debug",
@@ -37,13 +40,17 @@
             "showDevDebugOutput": "raw",
             "svdFile": "${workspaceRoot}/.vscode/STM32F407.svd",
             "configFiles": [
-                "interface/stlink-v2-1.cfg",
+                "interface/stlink.cfg",
                 "target/stm32f4x.cfg"
             ],
-            "postLaunchCommands": [
-                "monitor reset run",
-                "detach"
-            ]
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 1
+            },
+            "openOCDLaunchCommands": ["transport select hla_swd"],
+            // "preLaunchTask": "${defaultBuildTask}",
+            // "preLaunchTask": "flash-firmware",
+            "preLaunchTask": "CMake_flash"
         }
     ]
 }

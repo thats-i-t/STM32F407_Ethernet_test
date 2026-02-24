@@ -1,8 +1,8 @@
 {
-    "files.exclude": {
-        ".git": true
-    },
-    "cortex-debug.JLinkGDBServerPath": "/opt/SEGGER/JLink/JLinkGDBServerCLExe",
+    // "cmake.loggingLevel": "debug",{
+    "cmake.useCMakePresets": "always",
+    "cmake.configureOnOpen": false,
     "files.associations": {
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": false
 }
