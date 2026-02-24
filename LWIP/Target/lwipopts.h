@@ -98,6 +98,41 @@
 /*-----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
 #define LWIP_DEBUG
+
+// Core debug
+#define ETHARP_DEBUG         LWIP_DBG_ON
+#define NETIF_DEBUG          LWIP_DBG_ON
+#define PBUF_DEBUG           LWIP_DBG_ON
+#define API_LIB_DEBUG        LWIP_DBG_ON
+#define API_MSG_DEBUG        LWIP_DBG_ON
+#define SOCKETS_DEBUG        LWIP_DBG_ON
+#define ICMP_DEBUG           LWIP_DBG_ON
+#define IGMP_DEBUG           LWIP_DBG_ON
+#define INET_DEBUG           LWIP_DBG_ON
+#define IP_DEBUG             LWIP_DBG_ON
+#define IP_REASS_DEBUG       LWIP_DBG_ON
+#define RAW_DEBUG            LWIP_DBG_ON
+#define MEM_DEBUG            LWIP_DBG_ON
+#define MEMP_DEBUG           LWIP_DBG_ON
+#define SYS_DEBUG            LWIP_DBG_ON
+#define TCP_DEBUG            LWIP_DBG_ON
+#define TCP_INPUT_DEBUG      LWIP_DBG_ON
+#define TCP_OUTPUT_DEBUG     LWIP_DBG_ON
+#define TCP_RTO_DEBUG        LWIP_DBG_ON
+#define TCP_CWND_DEBUG       LWIP_DBG_ON
+#define TCP_WND_DEBUG        LWIP_DBG_ON
+#define TCP_FR_DEBUG         LWIP_DBG_ON
+#define TCP_QLEN_DEBUG       LWIP_DBG_ON
+#define UDP_DEBUG            LWIP_DBG_ON
+#define TCPIP_DEBUG          LWIP_DBG_ON
+#define PPP_DEBUG            LWIP_DBG_ON
+#define SLIP_DEBUG           LWIP_DBG_ON
+#define DHCP_DEBUG           LWIP_DBG_ON
+#define AUTOIP_DEBUG         LWIP_DBG_ON
+#define SNMP_MSG_DEBUG       LWIP_DBG_ON
+#define SNMP_MIB_DEBUG       LWIP_DBG_ON
+#define DNS_DEBUG            LWIP_DBG_ON
+
 /* USER CODE END 1 */
 
 #ifdef __cplusplus

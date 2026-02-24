@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "lwip.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -67,6 +66,7 @@ void SystemClock_Config(void);
 extern USBD_HandleTypeDef hUsbDeviceFS;
 #include "usbd_cdc_if.h"
 
+// see https://shawnhymel.com/1873/how-to-use-printf-on-stm32/
 #include <reent.h>
 _ssize_t _write_r(struct _reent* r, int fd, const void * ptr, size_t len)
 {
@@ -107,14 +107,16 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_LWIP_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(500);
-  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stdout, NULL, _IONBF, 0); // see https://shawnhymel.com/1873/how-to-use-printf-on-stm32/
   unsigned char d[] = "Test RAW write auf USB Schnittstelle\n";
   CDC_Transmit_FS(d, sizeof(d));
   printf("Test von print() auf USB-Schnittstelle: %f\n", 1.23f);
+  HAL_Delay(5000);
+  
+  MX_LWIP_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -125,36 +127,23 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     printf(".");
-    HAL_Delay(100);
+    HAL_Delay(1000);
     MX_LWIP_Process();
         
-    /* UDP Control Block erzeugen */
+    /* UDP Transfer */
     upcb = udp_new();
     if (upcb == NULL) {
-        // Fehlerbehandlung
         continue;
     }
-
-    /* Ziel-IP setzen */
     IP4_ADDR(&dest_ip, 192,168,123,2);
-
-    /* Daten */
     char data[] = "Hallo vom STM32F407";
-
-    /* pbuf anlegen */
     p = pbuf_alloc(PBUF_TRANSPORT, sizeof(data), PBUF_RAM);
     if (p != NULL) {
         memcpy(p->payload, data, sizeof(data));
-
-        /* Senden */
         udp_sendto(upcb, p, &dest_ip, 5005);
-
-        /* pbuf freigeben */
         pbuf_free(p);
-      }
-
-      /* UDP PCB freigeben (optional, wenn nur einmal gesendet wird) */
-      udp_remove(upcb);
+    }
+    udp_remove(upcb);
   }
 
   /* USER CODE END 3 */
