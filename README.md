@@ -1,0 +1,1 @@
+Project to test ethernet communication (sending of raw data in UDP transfers) on STM32F407 Discovery board connected to a LAN8720 PHY
