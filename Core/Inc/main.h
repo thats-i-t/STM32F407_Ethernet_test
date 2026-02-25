@@ -36,7 +36,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-#define UsbAppBufLen 100
+#define UsbAppBufLen 1000
 extern uint8_t UsbAppBuf[UsbAppBufLen];
 extern uint16_t UsbAppBufPt;
 

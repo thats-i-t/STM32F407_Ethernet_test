@@ -52,6 +52,7 @@
 /* USER CODE BEGIN PV */
 struct udp_pcb *upcb;
 struct pbuf *p;
+ip_addr_t my_ip;
 ip_addr_t dest_ip;
 
 /* USER CODE END PV */
@@ -72,11 +73,21 @@ _ssize_t _write_r(struct _reent* r, int fd, const void * ptr, size_t len)
 {
   (void)r;
   (void)fd;
-  while (USBD_OK != CDC_Transmit_FS((uint8_t*)ptr, len));
+  USBD_StatusTypeDef sts; 
+  uint16_t retryCnt = 3;
+  do{
+    sts = CDC_Transmit_FS((uint8_t*)ptr, len);
+    HAL_Delay(5);
+    retryCnt--;
+  } while ((sts == USBD_BUSY) && retryCnt);
+  // if(sts != USBD_OK)
+  //   return -1;
+  // else
+  //   return len;
   return len;
 }
 
-uint8_t UsbAppBuf[100];
+uint8_t UsbAppBuf[UsbAppBufLen];
 uint16_t UsbAppBufPt = 0;
 uint16_t UsbAppBufReadPt = 0;
 _ssize_t _read_r(struct _reent* r, int fd, void * ptr, size_t len)
@@ -99,13 +110,14 @@ _ssize_t _read_r(struct _reent* r, int fd, void * ptr, size_t len)
       ptr_ui8++;
       UsbAppBufReadPt++;
       len_received++;
-      
-      // while (USBD_OK != CDC_Transmit_FS(&UsbAppBuf[UsbAppBufReadPt-1], 1));
     }
   }
   return len;
 }
 
+err_t low_level_output_wrapped(struct netif *netif, struct pbuf *p);
+
+#define lenData 1000
 /* USER CODE END 0 */
 
 /**
@@ -145,10 +157,10 @@ int main(void)
   // unsigned char d[] = "Test RAW write auf USB Schnittstelle\n";
   // CDC_Transmit_FS(d, sizeof(d));  
 
-  HAL_Delay(2000);
-  printf("Paused. Press enter to continue...\n");
-  float dummy;
-  scanf("%f", &dummy);
+  // HAL_Delay(1000);
+  // printf("Paused. Press enter to continue...\n");
+  // float dummy;
+  // scanf("%f", &dummy);
 
   // printf("Test von print() auf USB-Schnittstelle: %f\n", 1.23f);
   // float num;
@@ -158,6 +170,13 @@ int main(void)
   // HAL_Delay(5000);
   
   MX_LWIP_Init();
+  
+  char data[lenData];
+  int idx;
+  for(idx = 0; idx < lenData; idx++)
+  {
+    sprintf(&data[idx], "%c", (char)idx);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -168,23 +187,46 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     printf(".");
-    HAL_Delay(1000);
+    // HAL_Delay(1000);
     MX_LWIP_Process();
         
     /* UDP Transfer */
-    upcb = udp_new();
-    if (upcb == NULL) {
-        continue;
+    netif_list[0].linkoutput = low_level_output_wrapped;
+    if(!netif_is_link_up(&netif_list[0]))
+    {
+      printf("Link down, TX skipped\n");
     }
-    IP4_ADDR(&dest_ip, 192,168,123,2);
-    char data[] = "Hallo vom STM32F407";
-    p = pbuf_alloc(PBUF_TRANSPORT, sizeof(data), PBUF_RAM);
-    if (p != NULL) {
-        memcpy(p->payload, data, sizeof(data));
-        udp_sendto(upcb, p, &dest_ip, 5005);
-        pbuf_free(p);
+    else
+    {
+      upcb = udp_new();
+      if (upcb != NULL) 
+      {
+        IP4_ADDR(&my_ip, 192,168,123,121);
+        err_t udpErr = udp_bind(upcb, &my_ip, 65100);
+
+        if(udpErr == ERR_OK)
+        {
+          p = pbuf_alloc(PBUF_TRANSPORT, sizeof(data), PBUF_RAM);
+
+          if (p != NULL) {
+            memcpy(p->payload, data, sizeof(data));
+            IP4_ADDR(&dest_ip, 192,168,123,2);
+            udp_sendto(upcb, p, &dest_ip, 5005);
+            pbuf_free(p);
+          }
+          else{
+            printf("Error: at pbuf_alloc\n");
+          }
+        }
+        else{
+          printf("Error: at udp_bind\n");
+        }
+        udp_remove(upcb);
+      }
+      else{
+        printf("Error: at udp_new\n");
+      }
     }
-    udp_remove(upcb);
   }
 
   /* USER CODE END 3 */
